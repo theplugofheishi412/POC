@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "POC Cabinet d’avocats"
+description = "Prototype web interactif en français pour présenter au client une solution de gestion de cabinet d’avocats. Frontend uniquement, données fictives, sans backend."
+version = "1.0.0"
+id = "artifacts/cabinet-avocat-poc"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22726
+
+[services.development]
+run = "pnpm --filter @workspace/cabinet-avocat-poc run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cabinet-avocat-poc", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cabinet-avocat-poc/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22726"
+BASE_PATH = "/"
