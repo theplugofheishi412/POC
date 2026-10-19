@@ -6,10 +6,21 @@ import {
   MoreHorizontal, Plus, Search, ShieldCheck, SlidersHorizontal, Sparkles, UserRound,
   UsersRound, X,
 } from 'lucide-react';
+import AgendaCalendar, { type AgendaCalendarEvent } from './AgendaCalendar';
 
 type Section = 'Vue d’ensemble' | 'Clients' | 'Dossiers' | 'Audiences' | 'Agenda' | 'Échéances' | 'Documents' | 'Honoraires' | 'Paiements' | 'Utilisateurs' | 'Activité';
-type RecordItem = { id: string; title: string; subtitle: string; status: string; date: string; kind: string };
+type RecordItem = { id: string; title: string; subtitle: string; status: string; date: string; kind: string; calendarDay?: number; calendarTime?: string };
 type DataSection = Exclude<Section, 'Vue d’ensemble'>;
+
+const agendaDayNames: Record<number, string> = {
+  16: 'Lundi',
+  17: 'Mardi',
+  18: 'Mercredi',
+  19: 'Jeudi',
+  20: 'Vendredi',
+  21: 'Samedi',
+  22: 'Dimanche',
+};
 
 const navGroups = [
   { label: 'ESPACE DE TRAVAIL', items: [{ name: 'Vue d’ensemble' as Section, icon: LayoutDashboard }] },
@@ -44,9 +55,9 @@ const seedRecords: Record<DataSection, RecordItem[]> = {
     { id: 'AUD-0702', title: 'Litige foncier, Rufisque', subtitle: 'Tribunal de grande instance · Rufisque', status: 'Confirmée', date: 'Mer. 02 juil. · 08:30', kind: 'Plaidoirie' },
   ],
   Agenda: [
-    { id: 'RDV-0618', title: 'Rendez-vous · Aminata Diop', subtitle: 'Cabinet · Me S. Mbaye', status: 'Confirmé', date: 'Aujourd’hui · 10:30', kind: 'Rendez-vous' },
-    { id: 'RDV-0618b', title: 'Revue de pièces · Ndar Industrie', subtitle: 'Cabinet · Me A. Ndiaye', status: 'Confirmé', date: 'Aujourd’hui · 14:00', kind: 'Interne' },
-    { id: 'RDV-0619', title: 'Consultation · M. Fall', subtitle: 'Visioconférence · Me M. Cissé', status: 'À confirmer', date: 'Demain · 09:00', kind: 'Consultation' },
+    { id: 'RDV-0618', title: 'Rendez-vous · Aminata Diop', subtitle: 'Cabinet · Me S. Mbaye', status: 'Confirmé', date: 'Mardi 17 juin · 10:30', kind: 'Rendez-vous', calendarDay: 17, calendarTime: '10:30' },
+    { id: 'RDV-0618b', title: 'Revue de pièces · Ndar Industrie', subtitle: 'Salle de réunion · Me A. Ndiaye', status: 'Confirmé', date: 'Mardi 17 juin · 14:00', kind: 'Réunion', calendarDay: 17, calendarTime: '14:00' },
+    { id: 'RDV-0619', title: 'Consultation · M. Fall', subtitle: 'Visioconférence · Me M. Cissé', status: 'À confirmer', date: 'Mercredi 18 juin · 09:00', kind: 'Consultation', calendarDay: 18, calendarTime: '09:00' },
   ],
   'Échéances': [
     { id: 'ECH-0619', title: 'Conclusions en réponse', subtitle: 'Ndar Industrie c. Ba & Fils', status: 'Urgent', date: 'Demain · 17:00', kind: 'Procédure' },
@@ -106,16 +117,32 @@ function CabinetDashboard() {
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDetail, setDraftDetail] = useState('');
   const [toast, setToast] = useState('');
+  const [agendaPositions, setAgendaPositions] = useState<Record<string, { calendarDay: number; calendarTime: string }>>({});
   const [extraRecords, setExtraRecords] = useState<Record<DataSection, RecordItem[]>>({
     Clients: [], Dossiers: [], Audiences: [], Agenda: [], 'Échéances': [], Documents: [],
     Honoraires: [], Paiements: [], Utilisateurs: [], Activité: [],
   });
   const currentSection = active === 'Vue d’ensemble' ? null : active;
-  const allRecords = currentSection ? [...seedRecords[currentSection], ...extraRecords[currentSection]] : [];
+  const baseRecords = currentSection ? [...seedRecords[currentSection], ...extraRecords[currentSection]] : [];
+  const allRecords = currentSection === 'Agenda'
+    ? baseRecords.map((item) => {
+      const position = agendaPositions[item.id];
+      return position
+        ? {
+          ...item,
+          ...position,
+          date: `${agendaDayNames[position.calendarDay]} ${position.calendarDay} juin · ${position.calendarTime}`,
+        }
+        : item;
+    })
+    : baseRecords;
   const visibleRecords = useMemo(() => allRecords.filter((item) => {
     const matches = `${item.id} ${item.title} ${item.subtitle} ${item.status} ${item.kind}`.toLowerCase().includes(query.toLowerCase());
     return matches && (filter === 'Tout' || item.status === filter);
   }), [allRecords, filter, query]);
+  const calendarEvents = visibleRecords.filter(
+    (item): item is AgendaCalendarEvent => typeof item.calendarDay === 'number' && typeof item.calendarTime === 'string',
+  );
   const globalResults = useMemo(() => Object.values(seedRecords).flat().filter((item) =>
     `${item.id} ${item.title} ${item.subtitle}`.toLowerCase().includes(globalQuery.toLowerCase()),
   ).slice(0, 5), [globalQuery]);
@@ -139,6 +166,13 @@ function CabinetDashboard() {
     setSelected(item);
     setModal('detail');
   };
+  const moveAgendaEvent = (eventId: string, day: number, time: string) => {
+    setAgendaPositions((positions) => ({
+      ...positions,
+      [eventId]: { calendarDay: day, calendarTime: time },
+    }));
+    notify(`Rendez-vous déplacé au ${agendaDayNames[day].toLowerCase()} ${day} juin à ${time}. Modifications temporaires.`);
+  };
   const createRecord = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!draftTitle.trim()) return;
@@ -150,6 +184,7 @@ function CabinetDashboard() {
       status: 'Nouveau',
       date: 'À l’instant',
       kind: currentSection ?? 'Note',
+      ...(target === 'Agenda' ? { calendarDay: 17, calendarTime: '08:00', date: 'Mardi 17 juin · 08:00' } : {}),
     };
     setExtraRecords((records) => ({ ...records, [target]: [item, ...records[target]] }));
     setDraftTitle('');
@@ -270,6 +305,24 @@ function CabinetDashboard() {
                     <div className="activity-feed"><div className="feed-entry"><span className="feed-icon"><FileText /></span><div className="feed-text"><strong>Projet de conclusions ajouté</strong><small>Ndar Industrie c. Ba &amp; Fils · par Me A. Ndiaye</small></div><span className="feed-time">09:42</span></div><div className="feed-entry"><span className="feed-icon"><CalendarDays /></span><div className="feed-text"><strong>Audience du 24 juin confirmée</strong><small>Tribunal de commerce · par Fatou Sarr</small></div><span className="feed-time">Hier</span></div></div>
                   </section>
                   <div className="note-card"><LockKeyhole /><h3>La discrétion d’abord.</h3><p>Maquette de présentation uniquement. Aucun mécanisme de sécurité ou de sauvegarde n’est ici représenté.</p></div>
+                </div>
+              </>
+            ) : active === 'Agenda' ? (
+              <>
+                <section className="panel agenda-filter-panel">
+                  <div className="list-toolbar">
+                    <label className="list-search"><Search /><input aria-label="Rechercher dans l’agenda" data-testid="input-section-search" placeholder="Rechercher un rendez-vous…" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
+                    <div className="list-tools">
+                      <select className="filter-select" aria-label="Filtrer par statut" data-testid="select-status-filter" value={filter} onChange={(event) => setFilter(event.target.value)}>
+                        {['Tout', ...Array.from(new Set(allRecords.map((record) => record.status)))].map((status) => <option key={status} value={status}>{status === 'Tout' ? 'Tous les statuts' : status}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </section>
+                <AgendaCalendar events={calendarEvents} onMove={moveAgendaEvent} onSelect={openDetail} />
+                <div className="module-overview">
+                  <div className="insight-card"><h3>Repères de l’agenda</h3><p>Faites glisser un rendez-vous pour modifier son jour ou son horaire. Le déplacement est local et temporaire.</p></div>
+                  <div className="insight-card"><h3>Un aperçu, pas un agenda réel</h3><p>Les rendez-vous affichés sont fictifs. Aucun calendrier externe n’est connecté et aucun changement n’est sauvegardé.</p></div>
                 </div>
               </>
             ) : (
