@@ -38,6 +38,16 @@ Variables d'environnement (toutes facultatives) :
 | `DEMO_MODE` | `true` | `false` désactive la connexion en un clic |
 | `DEMO_PASSWORD` | `Demo2026!` | Mot de passe des comptes de démonstration (au chargement) |
 | `CORS_ORIGIN` | aucune | Origines tierces autorisées (même origine par défaut) |
+| `SESSION_SECRET` | — | Si défini : sessions signées sans état (utilisé sur Vercel) |
+
+### Déploiement sur Vercel (démo en ligne, sans service externe)
+
+1. Pousser le dépôt sur GitHub, puis sur vercel.com : **Add New → Project → importer le dépôt**. Ne rien modifier dans les réglages : `vercel.json` fournit les commandes d'installation et de build.
+2. Cliquer sur **Deploy**. L'application et l'API sont servies à la même adresse (`https://<projet>.vercel.app`).
+
+Fonctionnement (`scripts/vercel-build.mjs`, Build Output API) : le frontend est publié en statique ; l'API Express tourne dans une fonction Vercel (`/api`) avec une base PGlite **en mémoire**, rechargée avec le jeu de démonstration à chaque démarrage d'instance. Les sessions sont signées (secret aléatoire généré à chaque déploiement).
+
+À savoir : les modifications faites pendant une démo (clients créés, pièces téléversées…) durent tant que l'instance reste active, puis disparaissent — les données de démonstration reviennent d'elles-mêmes. Le premier appel après une période d'inactivité prend quelques secondes (chargement des données). Pour une persistance réelle, utiliser `pnpm start` sur un serveur ou définir `DATABASE_URL`.
 
 ## 3. Comptes de démonstration
 

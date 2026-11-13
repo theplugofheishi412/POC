@@ -10,12 +10,16 @@ globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
+// Variante « fonction Vercel » : API_ENTRY=src/vercel.ts API_OUTDIR=<dossier>
+// (voir scripts/vercel-build.mjs). Par défaut : serveur Node classique dans dist/.
+const entry = process.env.API_ENTRY ?? "src/index.ts";
+
 async function buildAll() {
-  const distDir = path.resolve(artifactDir, "dist");
+  const distDir = path.resolve(artifactDir, process.env.API_OUTDIR ?? "dist");
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [path.resolve(artifactDir, "src/index.ts")],
+    entryPoints: { index: path.resolve(artifactDir, entry) },
     platform: "node",
     bundle: true,
     format: "esm",

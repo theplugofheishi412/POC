@@ -50,3 +50,6 @@ Thumbs.db
 
 # Données locales de la démonstration (PGlite + fichiers téléversés)
 data/
+
+# Sortie du build Vercel (scripts/vercel-build.mjs)
+.vercel/

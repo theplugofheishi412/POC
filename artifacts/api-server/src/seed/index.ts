@@ -55,7 +55,9 @@ const at = (offset: number, hours: number, minutes = 0) => {
   d.setHours(hours, minutes, 0, 0);
   return d;
 };
-const ago = (days: number, hours = 10) => at(-days, hours, (days * 7) % 60);
+/** Instant passé : jamais dans le futur, même chargé tôt le matin. */
+const ago = (days: number, hours = 10) =>
+  new Date(Math.min(at(-days, hours, (days * 7) % 60).getTime(), Date.now() - 5 * 60_000));
 
 export async function seedIfEmpty(): Promise<boolean> {
   const [{ n }] = (await db.select({ n: count() }).from(usersTable)) as [{ n: number }];

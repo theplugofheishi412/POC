@@ -28,9 +28,15 @@ if (process.env.DATABASE_URL) {
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   database = drizzlePg(pool, { schema });
 } else {
-  const dataDir = path.resolve(process.env.PGLITE_DATA_DIR ?? path.join(process.cwd(), "data", "pgdata"));
-  fs.mkdirSync(dataDir, { recursive: true });
-  pglite = new PGlite(dataDir);
+  // « memory:// » : base éphémère en mémoire (déploiement serverless de démo).
+  const configured = process.env.PGLITE_DATA_DIR;
+  if (configured === "memory://") {
+    pglite = new PGlite();
+  } else {
+    const dataDir = path.resolve(configured ?? path.join(process.cwd(), "data", "pgdata"));
+    fs.mkdirSync(dataDir, { recursive: true });
+    pglite = new PGlite(dataDir);
+  }
   // L'API du constructeur de requêtes est identique entre les deux pilotes.
   database = drizzlePglite(pglite, { schema }) as unknown as Database;
 }

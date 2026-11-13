@@ -62,7 +62,37 @@ function cookieOptions(req: Request): CookieOptions {
   };
 }
 
+/*
+ * Mode « sans état » (déploiement serverless) : si SESSION_SECRET est défini,
+ * le cookie contient `userId.expiration.signature` (HMAC-SHA256). La session
+ * reste valide quelle que soit l'instance qui traite la requête. L'utilisateur
+ * est relu en base à chaque requête (compte désactivé = session refusée).
+ */
+const SESSION_SECRET = process.env.SESSION_SECRET;
+const sign = (payload: string) => crypto.createHmac("sha256", SESSION_SECRET!).update(payload).digest("base64url");
+
+function signedToken(userId: number): string {
+  const payload = `${userId}.${Date.now() + SESSION_TTL_MS}`;
+  return `${payload}.${sign(payload)}`;
+}
+
+function verifySignedToken(token: string): number | null {
+  const [id, exp, sig] = token.split(".");
+  if (!id || !exp || !sig) return null;
+  const expected = Buffer.from(sign(`${id}.${exp}`));
+  const actual = Buffer.from(sig);
+  if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return null;
+  if (Number(exp) < Date.now()) return null;
+  const userId = Number(id);
+  return Number.isInteger(userId) && userId > 0 ? userId : null;
+}
+
 export async function openSession(req: Request, res: Response, userId: number): Promise<void> {
+  if (SESSION_SECRET) {
+    await db.update(usersTable).set({ lastLoginAt: new Date() }).where(eq(usersTable.id, userId));
+    res.cookie(SESSION_COOKIE, signedToken(userId), cookieOptions(req));
+    return;
+  }
   const token = crypto.randomBytes(32).toString("base64url");
   await db.insert(sessionsTable).values({
     tokenHash: hashToken(token),
@@ -77,7 +107,7 @@ export async function openSession(req: Request, res: Response, userId: number): 
 
 export async function closeSession(req: Request, res: Response): Promise<void> {
   const token = req.cookies?.[SESSION_COOKIE];
-  if (typeof token === "string") {
+  if (typeof token === "string" && !SESSION_SECRET) {
     await db.delete(sessionsTable).where(eq(sessionsTable.tokenHash, hashToken(token)));
   }
   res.clearCookie(SESSION_COOKIE, { ...cookieOptions(req), maxAge: undefined });
@@ -97,7 +127,13 @@ export function toAuthUser(u: User): AuthUser {
 /** Charge l'utilisateur de la session (si présente et valide). */
 export async function loadSession(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const token = req.cookies?.[SESSION_COOKIE];
-  if (typeof token === "string" && token.length > 20) {
+  if (typeof token === "string" && SESSION_SECRET) {
+    const userId = verifySignedToken(token);
+    if (userId) {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+      if (user?.active) req.user = toAuthUser(user);
+    }
+  } else if (typeof token === "string" && token.length > 20) {
     const [row] = await db
       .select({ user: usersTable })
       .from(sessionsTable)

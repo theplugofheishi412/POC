@@ -2,10 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter @workspace/cabinet-avocat-poc run build",
-  "outputDirectory": "artifacts/cabinet-avocat-poc/dist/public",
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "https://VOTRE-API.onrender.com/api/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "buildCommand": "node scripts/vercel-build.mjs"
 }
