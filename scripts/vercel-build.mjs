@@ -8,7 +8,8 @@
  *                                      en mémoire rechargée avec les données
  *                                      de démonstration à chaque démarrage
  *
- * Utilisé par vercel.json (buildCommand). Exécutable en local :
+ * Utilisé par vercel.json (buildCommand), à la racine du dépôt ou dans
+ * artifacts/cabinet-avocat-poc. Exécutable en local :
  *   node scripts/vercel-build.mjs
  */
 import crypto from 'node:crypto';
@@ -20,7 +21,9 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const api = path.join(root, 'artifacts', 'api-server');
 const web = path.join(root, 'artifacts', 'cabinet-avocat-poc');
-const out = path.join(root, '.vercel', 'output');
+// Vercel lit la sortie dans le « Root Directory » du projet : racine du dépôt
+// ou artifacts/cabinet-avocat-poc (détection automatique de Vite).
+const out = path.join(process.cwd(), '.vercel', 'output');
 const funcDir = path.join(out, 'functions', 'api.func');
 
 function run(label, args, cwd, env = {}) {
@@ -95,7 +98,8 @@ fs.writeFileSync(path.join(funcDir, 'package.json'), '{ "type": "module" }\n');
 
 /* 4. Configuration de la fonction et des routes */
 writeJson(path.join(funcDir, '.vc-config.json'), {
-  runtime: 'nodejs22.x',
+  // Même version majeure de Node que celle du build (réglage du projet Vercel).
+  runtime: `nodejs${process.versions.node.split('.')[0]}.x`,
   handler: 'index.mjs',
   launcherType: 'Nodejs',
   shouldAddHelpers: false,
