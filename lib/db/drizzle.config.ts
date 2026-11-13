@@ -1,14 +1,13 @@
 import { defineConfig } from "drizzle-kit";
-import path from "path";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
-}
-
+// `generate` n'a pas besoin de base ; `push` exige DATABASE_URL (PostgreSQL).
+// En mode PGlite (démo locale), les migrations sont appliquées au démarrage
+// de l'API à partir du dossier ./drizzle.
 export default defineConfig({
-  schema: path.join(__dirname, "./src/schema/index.ts"),
+  schema: "./src/schema/index.ts",
+  out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: process.env.DATABASE_URL ?? "postgres://localhost:5432/cabinet",
   },
 });

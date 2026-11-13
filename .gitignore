@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Données locales de la démonstration (PGlite + fichiers téléversés)
+data/

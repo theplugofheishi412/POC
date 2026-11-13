@@ -16,6 +16,10 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535) {
 
 const basePath = process.env.BASE_PATH ?? '/';
 
+// En développement local, les appels /api sont relayés vers l'API Express.
+// (Sur Replit, le routeur de chemins envoie déjà /api vers le service API.)
+const apiTarget = process.env.API_URL ?? `http://localhost:${process.env.API_PORT ?? '8080'}`;
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -61,8 +65,14 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: {
+      '/api': { target: apiTarget, changeOrigin: false },
+    },
   },
   preview: {
+    proxy: {
+      '/api': { target: apiTarget, changeOrigin: false },
+    },
     port,
     host: '0.0.0.0',
     allowedHosts: true,

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -79,71 +78,71 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 42 28% 97%;
+  --background: 220 23% 97%;
 
-  --foreground: 148 19% 18%;
+  --foreground: 222 47% 13%;
 
-  --border: 48 14% 89%;
+  --border: 220 16% 89%;
 
-  --card: 50 100% 99%;
+  --card: 0 0% 100%;
 
-  --card-foreground: 148 19% 18%;
+  --card-foreground: 222 47% 13%;
 
-  --card-border: 48 14% 89%;
+  --card-border: 220 16% 90%;
 
-  --sidebar: 52 23% 94%;
+  --sidebar: 222 50% 15%;
 
-  --sidebar-foreground: 148 19% 18%;
+  --sidebar-foreground: 220 25% 88%;
 
-  --sidebar-border: 48 14% 88%;
+  --sidebar-border: 222 35% 22%;
 
-  --sidebar-primary: 160 33% 21%;
+  --sidebar-primary: 40 52% 57%;
 
-  --sidebar-primary-foreground: 48 50% 96%;
+  --sidebar-primary-foreground: 222 50% 12%;
 
-  --sidebar-accent: 112 18% 90%;
+  --sidebar-accent: 222 38% 22%;
 
-  --sidebar-accent-foreground: 160 33% 21%;
+  --sidebar-accent-foreground: 0 0% 100%;
 
-  --sidebar-ring: 160 33% 21%;
+  --sidebar-ring: 40 52% 57%;
 
-  --popover: 50 100% 99%;
+  --popover: 0 0% 100%;
 
-  --popover-foreground: 148 19% 18%;
+  --popover-foreground: 222 47% 13%;
 
-  --popover-border: 48 14% 89%;
+  --popover-border: 220 16% 89%;
 
-  --primary: 160 33% 21%;
+  --primary: 222 50% 18%;
 
-  --primary-foreground: 48 50% 96%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 112 18% 90%;
+  --secondary: 220 20% 94%;
 
-  --secondary-foreground: 148 19% 25%;
+  --secondary-foreground: 222 40% 20%;
 
-  --muted: 48 18% 93%;
+  --muted: 220 18% 95%;
 
-  --muted-foreground: 130 7% 54%;
+  --muted-foreground: 220 10% 44%;
 
-  --accent: 38 34% 88%;
+  --accent: 40 45% 93%;
 
-  --accent-foreground: 148 19% 25%;
+  --accent-foreground: 36 55% 28%;
 
-  --destructive: 10 37% 49%;
+  --destructive: 0 68% 46%;
 
   --destructive-foreground: 0 0% 100%;
 
-  --input: 48 14% 89%;
-  --ring: 160 33% 21%;
-  --chart-1: 160 33% 32%;
-  --chart-2: 38 34% 55%;
-  --chart-3: 10 37% 58%;
-  --chart-4: 112 18% 60%;
-  --chart-5: 205 16% 56%;
+  --input: 220 15% 84%;
+  --ring: 40 52% 50%;
+  --chart-1: 222 50% 24%;
+  --chart-2: 40 52% 50%;
+  --chart-3: 211 45% 52%;
+  --chart-4: 160 35% 40%;
+  --chart-5: 220 10% 60%;
 
-  --app-font-sans: 'DM Sans', sans-serif;
-  --app-font-serif: 'Playfair Display', Georgia, serif;
-  --app-font-mono: 'IBM Plex Mono', monospace;
+  --app-font-sans: 'Inter', system-ui, sans-serif;
+  --app-font-serif: 'Source Serif 4', Georgia, serif;
+  --app-font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --radius: 0.5rem; /* 8px */
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
@@ -592,3 +591,16 @@
 .record-table td:nth-child(1){display:inline}.record-table td:nth-child(1) .record-id{display:none}.record-table td:nth-child(2){padding-top:3px}.record-table td:nth-child(3){display:inline-block;margin-top:8px}.record-table td:nth-child(4){display:inline-block;margin:8px 0 0 8px}.record-table td:last-child{position:absolute;right:13px;top:17px;width:auto}
 .record-table .record-title{white-space:normal}.record-table .record-subtitle{margin-top:4px}.list-footer{padding:11px 14px}.notification-pop{top:48px;right:13px}}
 @media(max-width:390px){.global-search{width:125px}.page-title{font-size:24px}.page-head{gap:8px}.topbar{padding:0 12px}.content{padding-left:12px;padding-right:12px}}
+
+/* --- Identité TechSolution Cabinet ------------------------------------ */
+@layer base {
+  h1, h2, h3, .font-serif { font-family: var(--app-font-serif); letter-spacing: -0.01em; }
+  ::selection { background: hsl(40 60% 85%); }
+}
+@layer utilities {
+  .tabular { font-variant-numeric: tabular-nums; }
+  .gold-rule { background: linear-gradient(90deg, hsl(40 52% 57%), hsl(40 52% 57% / 0)); height: 2px; }
+}
+@media print {
+  .no-print { display: none !important; }
+}

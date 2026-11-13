@@ -1,7 +1,7 @@
 kind = "web"
 previewPath = "/"
 title = "POC Cabinet d’avocats"
-description = "Prototype web interactif en français pour présenter au client une solution de gestion de cabinet d’avocats. Frontend uniquement, données fictives, sans backend."
+description = "Prototype interactif en français de gestion de cabinet d’avocats (TechSolution). Frontend React connecté à l’API Express (artifacts/api-server), données fictives persistantes."
 version = "1.0.0"
 id = "artifacts/cabinet-avocat-poc"
 router = "path"
